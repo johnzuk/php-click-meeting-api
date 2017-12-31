@@ -13,7 +13,7 @@ Installation
 Via [composer](https://getcomposer.org)
 
 ```bash
-composer require johnzuk/php-click-meeting-api php-http/guzzle6-adapter
+composer require john_zuk/php-click-meeting-api php-http/guzzle6-adapter
 ```
 
 
