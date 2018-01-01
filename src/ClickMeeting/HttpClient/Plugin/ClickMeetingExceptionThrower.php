@@ -2,11 +2,9 @@
 namespace ClickMeeting\HttpClient\Plugin;
 
 use ClickMeeting\Exception\BarRequestException;
-use ClickMeeting\Exception\InvalidResponseContentType;
 use ClickMeeting\Exception\NotFoundException;
 use ClickMeeting\Exception\TimeLimitExceededException;
 use ClickMeeting\Exception\UnauthorizedException;
-use ClickMeeting\HttpClient\Message\ResponseMediator;
 use Http\Client\Common\Plugin;
 use Psr\Http\Message\RequestInterface;
 use Psr\Http\Message\ResponseInterface;
@@ -41,7 +39,7 @@ class ClickMeetingExceptionThrower implements Plugin
                     throw new NotFoundException($content, 404);
                 }
 
-                throw new \HttpException($content, $response->getStatusCode());
+                throw new \ErrorException($content, $response->getStatusCode());
             }
 
             return $response;
