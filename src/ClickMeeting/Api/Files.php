@@ -17,9 +17,15 @@ class Files extends AbstractApi
         return $this->get('file-library');
     }
 
-    public function add()
+    /**
+     * @param array $file
+     * @return array
+     * @throws \ClickMeeting\Exception\InvalidResponseContentType
+     * @throws \Http\Client\Exception
+     */
+    public function add($file = [])
     {
-        
+        return $this->post('file-library', [], [], $file);
     }
 
     /**
@@ -33,9 +39,16 @@ class Files extends AbstractApi
         return $this->get('file-library/conferences/'.$roomId);
     }
 
-    public function addToRoom()
+    /**
+     * @param $roomId
+     * @param array $file
+     * @return array
+     * @throws \ClickMeeting\Exception\InvalidResponseContentType
+     * @throws \Http\Client\Exception
+     */
+    public function addToRoom($roomId, $file = [])
     {
-
+        return $this->post('file-library/conferences/'.$roomId, [], [], $file);
     }
 
     /**

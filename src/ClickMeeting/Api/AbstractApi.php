@@ -2,6 +2,8 @@
 namespace ClickMeeting\Api;
 
 use ClickMeeting\Client;
+use ClickMeeting\HttpClient\Message\BodyBuilder;
+use ClickMeeting\HttpClient\Message\PathBuilder;
 use ClickMeeting\HttpClient\Message\QueryBuilder;
 use ClickMeeting\HttpClient\Message\ResponseMediator;
 use Http\Discovery\StreamFactoryDiscovery;
@@ -24,29 +26,21 @@ class AbstractApi implements ApiInterface
     protected $streamFactory;
 
     /**
+     * @var BodyBuilder
+     */
+    protected $bodyBuilder;
+
+    /**
      * AbstractApi constructor.
      * @param Client $client
      * @param StreamFactory|null $streamFactory
+     * @param BodyBuilder|null $bodyBuilder
      */
-    public function __construct(Client $client, StreamFactory $streamFactory = null)
+    public function __construct(Client $client, StreamFactory $streamFactory = null, BodyBuilder $bodyBuilder = null)
     {
         $this->client = $client;
         $this->streamFactory = $streamFactory ?: StreamFactoryDiscovery::find();
-    }
-
-    /**
-     * @param string $path
-     * @param array $requestHeaders
-     * @return array
-     *
-     * @throws \ClickMeeting\Exception\InvalidResponseContentType
-     * @throws \Http\Client\Exception
-     */
-    protected function get($path, $requestHeaders = [])
-    {
-        $response = $this->client->getHttpClient()->get($path, $requestHeaders);
-
-        return ResponseMediator::getContent($response);
+        $this->bodyBuilder = $bodyBuilder ?: new BodyBuilder($this->streamFactory);
     }
 
     /**
@@ -57,12 +51,31 @@ class AbstractApi implements ApiInterface
      * @throws \ClickMeeting\Exception\InvalidResponseContentType
      * @throws \Http\Client\Exception
      */
-    protected function post($path, $parameters = [], $requestHeaders = [])
+    protected function get($path, array $parameters = [], array $requestHeaders = [])
     {
-        $body = $this->streamFactory->createStream(QueryBuilder::build($parameters));
-        $requestHeaders['Content-Type'] = 'application/x-www-form-urlencoded';
+        $response = $this->client->getHttpClient()->get(PathBuilder::build($path, $parameters), $requestHeaders);
 
-        $response = $this->client->getHttpClient()->post($path, $requestHeaders, $body);
+        return ResponseMediator::getContent($response);
+    }
+
+    /**
+     * @param $path
+     * @param array $parameters
+     * @param array $requestHeaders
+     * @param array $files
+     * @return array
+     * @throws \ClickMeeting\Exception\InvalidResponseContentType
+     * @throws \Http\Client\Exception
+     */
+    protected function post($path, array $parameters = [], array $requestHeaders = [], array $files = [])
+    {
+        $postRequest = $this->bodyBuilder->build($parameters, $requestHeaders, $files);
+
+        $response = $this->client->getHttpClient()->post(
+            $path,
+            $postRequest->getRequestHeaders(),
+            $postRequest->getBody()
+        );
 
         return ResponseMediator::getContent($response);
     }
@@ -76,7 +89,7 @@ class AbstractApi implements ApiInterface
      * @throws \ClickMeeting\Exception\InvalidResponseContentType
      * @throws \Http\Client\Exception
      */
-    protected function put($path, $parameters = [], $requestHeaders = [])
+    protected function put($path, array $parameters = [], array $requestHeaders = [])
     {
         $body = $this->streamFactory->createStream(QueryBuilder::build($parameters));
         $requestHeaders['Content-Type'] = 'application/x-www-form-urlencoded';
@@ -88,15 +101,15 @@ class AbstractApi implements ApiInterface
 
     /**
      * @param $path
+     * @param array $parameters
      * @param array $requestHeaders
      * @return array
-     *
      * @throws \ClickMeeting\Exception\InvalidResponseContentType
      * @throws \Http\Client\Exception
      */
-    protected function deleteRequest($path, $requestHeaders = [])
+    protected function deleteRequest($path, array $parameters = [], array $requestHeaders = [])
     {
-        $response = $this->client->getHttpClient()->delete($path, $requestHeaders);
+        $response = $this->client->getHttpClient()->delete(PathBuilder::build($path, $parameters), $requestHeaders);
 
         return ResponseMediator::getContent($response);
     }

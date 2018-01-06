@@ -20,17 +20,22 @@ class Conferences extends AbstractApi
 
     /**
      * @param string $status
+     * @param int|null $page
      * @return array
      * @throws \ClickMeeting\Exception\InvalidResponseContentType
      * @throws \Http\Client\Exception
      */
-    public function all($status = 'active')
+    public function all($status = 'active', $page = null)
     {
         if (!in_array($status, self::CONFERENCE_STATUSES)) {
             throw new \InvalidArgumentException(sprintf("Invalid status '%s'", $status));
         }
+        $parameters = [];
+        if (is_int($page)) {
+            $parameters['page'] = $page;
+        }
 
-        return $this->get('conferences/'.$status);
+        return $this->get('conferences/'.$status, $parameters);
     }
 
     /**

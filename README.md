@@ -31,4 +31,9 @@ $client->authenticate('YourAPIKeyHere');
 
 $client->registrations()->all(123123);
 $client->conferences()->delete(321321);
+
+//add file
+$client->files()->add(123123, [
+    'uploaded' => 'pdf-sample.pdf'
+]);
 ```
