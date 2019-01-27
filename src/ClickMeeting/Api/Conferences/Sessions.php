@@ -36,7 +36,7 @@ class Sessions extends AbstractApi
      */
     public function session($roomId, $sessionId)
     {
-        return $this->get('conferences/'.$roomId.'/sessions'.$sessionId);
+        return $this->get('conferences/'.$roomId.'/sessions/'.$sessionId);
     }
 
     /**
