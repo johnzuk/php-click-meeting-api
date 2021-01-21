@@ -1,45 +1,40 @@
 <?php
+
 namespace ClickMeeting\HttpClient\Plugin;
 
-use ClickMeeting\Exception\BarRequestException;
+use ClickMeeting\Exception\BadRequestException;
 use ClickMeeting\Exception\NotFoundException;
-use ClickMeeting\Exception\TimeLimitExceededException;
+use ClickMeeting\Exception\RequestException;
 use ClickMeeting\Exception\UnauthorizedException;
 use Http\Client\Common\Plugin;
+use Http\Promise\Promise;
 use Psr\Http\Message\RequestInterface;
 use Psr\Http\Message\ResponseInterface;
 
-/**
- * Class ClickMeetingExceptionThrower
- * @package ClickMeeting\HttpClient\Plugin
- */
 class ClickMeetingExceptionThrower implements Plugin
 {
     /**
      * {@inheritdoc}
      */
-    public function handleRequest(RequestInterface $request, callable $next, callable $first)
+    public function handleRequest(RequestInterface $request, callable $next, callable $first): Promise
     {
-        return $next($request)->then(function (ResponseInterface $response) {
+        return $next($request)->then(static function (ResponseInterface $response): ResponseInterface {
+            $statusCode = $response->getStatusCode();
 
-            if ($response->getStatusCode() >= 400 && $response->getStatusCode() < 600) {
-                $content = $response->getBody()->__toString();
+            if ($statusCode >= 400 && $statusCode < 600) {
+                $content = $response->getBody()->getContents();
 
-                if ($response->getStatusCode() === 400) {
-                    if (stripos($content, 'limit') !== false) {
-                        throw new TimeLimitExceededException($content, 400);
-                    }
-
-                    throw new BarRequestException($content, 400);
+                if ($statusCode === 400) {
+                    throw new BadRequestException($content, $statusCode);
                 }
-                if ($response->getStatusCode() === 401) {
-                    throw new UnauthorizedException($content, 401);
+                if ($statusCode === 401) {
+                    throw new UnauthorizedException($content, $statusCode);
                 }
-                if ($response->getStatusCode() === 404) {
-                    throw new NotFoundException($content, 404);
+                if ($statusCode === 404) {
+                    throw new NotFoundException($content, $statusCode);
                 }
 
-                throw new \ErrorException($content, $response->getStatusCode());
+                throw new RequestException($content, $response->getStatusCode());
             }
 
             return $response;

@@ -1,26 +1,30 @@
 <?php
+
 namespace ClickMeeting\HttpClient\Plugin;
 
 use Http\Client\Common\Plugin;
+use Http\Client\Common\Plugin\AddPathPlugin;
+use Http\Promise\Promise;
 use Psr\Http\Message\RequestInterface;
 
-/**
- * Class ApiVersion
- * @package ClickMeeting\HttpClient\Plugin
- */
 class ApiVersion implements Plugin
 {
-    const API_VERSION = '/v1/';
+    private const BASE_API_HOST = 'api.clickmeeting.com';
 
-    /**
-     * @inheritdoc
-     */
-    public function handleRequest(RequestInterface $request, callable $next, callable $first)
+    /** @var AddPathPlugin */
+    private $pathPlugin;
+
+    public function __construct(AddPathPlugin $pathPlugin)
     {
-        $uri = $request->getUri();
-        if (substr($uri->getPath(), 0, strlen(self::API_VERSION)) !== self::API_VERSION) {
-            $request = $request->withUri($uri->withPath(self::API_VERSION.$uri->getPath()));
+        $this->pathPlugin = $pathPlugin;
+    }
+
+    public function handleRequest(RequestInterface $request, callable $next, callable $first): Promise
+    {
+        if ($request->getUri()->getHost() === self::BASE_API_HOST) {
+            return $this->pathPlugin->handleRequest($request, $next, $first);
         }
+
         return $next($request);
     }
 }

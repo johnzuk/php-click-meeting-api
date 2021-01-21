@@ -1,103 +1,60 @@
 <?php
+
 namespace ClickMeeting\Api\Conferences;
 
 use ClickMeeting\Api\AbstractApi;
+use InvalidArgumentException;
 
-/**
- * Class Registrations
- * @package ClickMeeting\Api\Conferences
- */
 class Registrations extends AbstractApi
 {
-    const STATUS_ACTIVE = 'active';
-    const STATUS_ALL = 'all';
+    public const STATUS_ACTIVE = 'active';
+    public const STATUS_ALL = 'all';
 
-    const REGISTRATION_STATUSES = [
+    public const REGISTRATION_STATUSES = [
         self::STATUS_ACTIVE,
         self::STATUS_ALL
     ];
 
-    /**
-     * @param int $roomId
-     * @param string $status
-     * @return array
-     * @throws \ClickMeeting\Exception\InvalidResponseContentType
-     * @throws \Http\Client\Exception
-     */
-    public function all($roomId, $status='all')
+    public function all(int $roomId, string $status = self::STATUS_ALL): array
     {
         if (!in_array($status, self::REGISTRATION_STATUSES)) {
-            throw new \InvalidArgumentException(sprintf("Invalid status '%s'", $status));
+            throw new InvalidArgumentException(sprintf("Invalid status '%s'", $status));
         }
 
-        return $this->get('conferences/'.$roomId.'/registrations/'.$status);
+        return $this->get('/conferences/' . $roomId . '/registrations/' . $status);
     }
 
-    /**
-     * @param int $roomId
-     * @param array $parameters
-     * @return array
-     * @throws \ClickMeeting\Exception\InvalidResponseContentType
-     * @throws \Http\Client\Exception
-     */
-    public function registerParticipant($roomId, array $parameters)
+    public function register(int $roomId, array $parameters): array
     {
-        return $this->post('conferences/'.$roomId.'/registration', $parameters);
+        return $this->post('/conferences/' . $roomId . '/registration', $parameters);
     }
 
-    /**
-     * @param $roomId
-     * @param $sessionId
-     * @return array
-     * @throws \ClickMeeting\Exception\InvalidResponseContentType
-     * @throws \Http\Client\Exception
-     */
-    public function registeredParticipantInSession($roomId, $sessionId)
+    public function participants(int $roomId, int $sessionId): array
     {
-        return $this->get('conferences/'.$roomId.'/sessions/'.$sessionId.'/registrations');
+        return $this->get('/conferences/' . $roomId . '/sessions/' . $sessionId . '/registrations');
     }
 
-    /**
-     * @param int $roomId
-     * @return array
-     * @throws \ClickMeeting\Exception\InvalidResponseContentType
-     * @throws \Http\Client\Exception
-     */
-    public function turnOnRegistration($roomId)
+    public function enableRegistration(int $roomId): array
     {
-        return $this->put('conferences/'.$roomId, [
+        return $this->put('/conferences/' . $roomId, [
             'registration' => [
                 'enabled' => true,
             ],
         ]);
     }
 
-    /**
-     * @param int $roomId
-     * @return array
-     * @throws \ClickMeeting\Exception\InvalidResponseContentType
-     * @throws \Http\Client\Exception
-     */
-    public function turnOffRegistration($roomId)
+    public function disableRegistration(int $roomId): array
     {
-        return $this->put('conferences/'.$roomId, [
+        return $this->put('/conferences/' . $roomId, [
             'registration' => [
                 'enabled' => false,
             ],
         ]);
     }
 
-    /**
-     * @param int $roomId
-     * @param bool $enabled
-     * @param int $template
-     * @return array
-     * @throws \ClickMeeting\Exception\InvalidResponseContentType
-     * @throws \Http\Client\Exception
-     */
-    public function updateTemplate($roomId, $enabled, $template)
+    public function template(int $roomId, bool $enabled, int $template): array
     {
-        return $this->put('conferences/'.$roomId, [
+        return $this->put('/conferences/' . $roomId, [
             'registration' => [
                 'enabled' => $enabled,
                 'template' => $template,

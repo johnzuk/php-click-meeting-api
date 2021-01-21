@@ -1,18 +1,16 @@
 <?php
+
 namespace ClickMeeting\HttpClient;
 
 use Http\Client\Common\HttpMethodsClient;
+use Http\Client\Common\HttpMethodsClientInterface;
 use Http\Client\Common\Plugin;
 use Http\Client\Common\PluginClient;
 use Http\Client\HttpClient;
-use Http\Discovery\HttpClientDiscovery;
-use Http\Discovery\MessageFactoryDiscovery;
+use Http\Discovery\Psr17FactoryDiscovery;
+use Http\Discovery\Psr18ClientDiscovery;
 use Http\Message\RequestFactory;
 
-/**
- * Class Builder
- * @package ClickMeeting\HttpClient
- */
 final class Builder
 {
     /**
@@ -40,22 +38,13 @@ final class Builder
      */
     private $httpClientModified = false;
 
-    /**
-     * Builder constructor.
-     *
-     * @param HttpClient $httpClient
-     * @param RequestFactory $requestFactory
-     */
     public function __construct(HttpClient $httpClient = null, RequestFactory $requestFactory = null)
     {
-        $this->httpClient = $httpClient ?: HttpClientDiscovery::find();
-        $this->requestFactory = $requestFactory ?: MessageFactoryDiscovery::find();
+        $this->httpClient = $httpClient ?: Psr18ClientDiscovery::find();
+        $this->requestFactory = $requestFactory ?: Psr17FactoryDiscovery::findRequestFactory();
     }
 
-    /**
-     * @return HttpMethodsClient
-     */
-    public function getHttpClient()
+    public function getHttpClient(): HttpMethodsClientInterface
     {
         if ($this->httpClientModified) {
             $this->httpClientModified = false;
@@ -69,19 +58,13 @@ final class Builder
         return $this->pluginClient;
     }
 
-    /**
-     * @param Plugin $plugin
-     */
-    public function addPlugin(Plugin $plugin)
+    public function addPlugin(Plugin $plugin): void
     {
         $this->plugins[] = $plugin;
         $this->httpClientModified = true;
     }
 
-    /**
-     * @param string $className
-     */
-    public function removePlugin($className)
+    public function removePlugin(string $className): void
     {
         foreach ($this->plugins as $id => $plugin) {
             if ($plugin instanceof $className) {

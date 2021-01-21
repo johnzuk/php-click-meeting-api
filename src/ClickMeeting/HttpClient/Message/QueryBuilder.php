@@ -1,18 +1,11 @@
 <?php
+
 namespace ClickMeeting\HttpClient\Message;
 
-/**
- * Class QueryBuilder
- * @package ClickMeeting\HttpClient\Message
- */
 class QueryBuilder
 {
-    /**
-     * @param array $parameters
-     * @return string
-     */
-    public static function build(array $parameters)
+    public static function build(array $parameters): string
     {
-        return http_build_query($parameters, '', '&');
+        return http_build_query($parameters);
     }
 }

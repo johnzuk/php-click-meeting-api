@@ -1,144 +1,90 @@
 <?php
+
 namespace ClickMeeting\Api;
+
+use ClickMeeting\Api\Conferences\Recordings;
 use ClickMeeting\Api\Conferences\Registrations;
 use ClickMeeting\Api\Conferences\Sessions;
 use ClickMeeting\Api\Conferences\Tokens;
+use ClickMeeting\HttpClient\Message\PathBuilder;
 
-/**
- * Class Conferences
- * @package ClickMeeting\Api
- */
 class Conferences extends AbstractApi
 {
-    const STATUS_ACTIVE = 'active';
-    const STATUS_INACTIVE = 'inactive';
+    public const STATUS_ACTIVE = 'active';
+    public const STATUS_INACTIVE = 'inactive';
 
-    const CONFERENCE_STATUSES = [
+    private const CONFERENCE_STATUSES = [
         self::STATUS_ACTIVE,
         self::STATUS_INACTIVE
     ];
 
-    /**
-     * @param string $status
-     * @param int|null $page
-     * @return array
-     * @throws \ClickMeeting\Exception\InvalidResponseContentType
-     * @throws \Http\Client\Exception
-     */
-    public function all($status = 'active', $page = null)
+    public function all(string $status = self::STATUS_INACTIVE, int $page = null): array
     {
-        if (!in_array($status, self::CONFERENCE_STATUSES)) {
+        if (!in_array($status, self::CONFERENCE_STATUSES, true)) {
             throw new \InvalidArgumentException(sprintf("Invalid status '%s'", $status));
         }
+
         $parameters = [];
-        if (is_int($page)) {
+        if ($page) {
             $parameters['page'] = $page;
         }
 
-        return $this->get('conferences/'.$status, $parameters);
+        $path = PathBuilder::build('/conferences/' . $status, $parameters);
+        return $this->get($path);
     }
 
-    /**
-     * @param array $parameters
-     * @return array
-     * @throws \ClickMeeting\Exception\InvalidResponseContentType
-     * @throws \Http\Client\Exception
-     */
-    public function add(array $parameters)
+    public function add(array $parameters): array
     {
-        return $this->post('conferences', $parameters);
+        return $this->post('/conferences', $parameters);
     }
 
-    /**
-     * @param int $roomId
-     * @param array $parameters
-     * @return array
-     * @throws \ClickMeeting\Exception\InvalidResponseContentType
-     * @throws \Http\Client\Exception
-     */
-    public function edit($roomId, array $parameters)
+    public function edit(int $roomId, array $parameters): array
     {
-        return $this->put('conferences/'.$roomId, $parameters);
+        return $this->put('/conferences/' . $roomId, $parameters);
     }
 
-    /**
-     * @param int $roomId
-     * @return array
-     * @throws \ClickMeeting\Exception\InvalidResponseContentType
-     * @throws \Http\Client\Exception
-     */
-    public function delete($roomId)
+    public function delete(int $roomId): array
     {
-        return $this->deleteRequest('conferences/'.$roomId);
+        return $this->deleteRequest('/conferences/' . $roomId);
     }
 
-    /**
-     * @param int $roomId
-     * @return array
-     * @throws \ClickMeeting\Exception\InvalidResponseContentType
-     * @throws \Http\Client\Exception
-     */
-    public function room($roomId)
+    public function room(int $roomId): array
     {
-        return $this->get('conferences/'.$roomId);
+        return $this->get('/conferences/' . $roomId);
     }
 
-    /**
-     * @return array
-     * @throws \ClickMeeting\Exception\InvalidResponseContentType
-     * @throws \Http\Client\Exception
-     */
-    public function skins()
+    public function skins(): array
     {
-        return $this->get('conferences/skins');
+        return $this->get('/conferences/skins');
     }
 
-    /**
-     * @param int $roomId
-     * @param array $parameters
-     * @return array
-     * @throws \ClickMeeting\Exception\InvalidResponseContentType
-     * @throws \Http\Client\Exception
-     */
-    public function getAutoLoginUrlToMeetingRoom($roomId, array $parameters)
+    public function autoLoginHash(int $roomId, array $parameters): array
     {
-        return $this->post('conferences/'.$roomId.'/room/autologin_hash', $parameters);
+        return $this->post('/conferences/' . $roomId . '/room/autologin_hash', $parameters);
     }
 
-    /**
-     * @param int $roomId
-     * @param string $lang
-     * @param array $parameters
-     * @return array
-     * @throws \ClickMeeting\Exception\InvalidResponseContentType
-     * @throws \Http\Client\Exception
-     */
-    public function sendInvitationEmail($roomId, $lang, array $parameters)
+    public function invitation(int $roomId, string $lang, array $parameters): array
     {
-        return $this->post('conferences/'.$roomId.'/invitation/email/'.$lang, $parameters);
+        return $this->post('/conferences/' . $roomId . '/invitation/email/' . $lang, $parameters);
     }
 
-    /**
-     * @return Sessions
-     */
-    public function sessions()
+    public function sessions(): Sessions
     {
         return new Sessions($this->client);
     }
 
-    /**
-     * @return Tokens
-     */
-    public function tokens()
+    public function tokens(): Tokens
     {
         return new Tokens($this->client);
     }
 
-    /**
-     * @return Registrations
-     */
-    public function registrations()
+    public function registrations(): Registrations
     {
         return new Registrations($this->client);
+    }
+
+    public function recordings(): Recordings
+    {
+        return new Recordings($this->client);
     }
 }

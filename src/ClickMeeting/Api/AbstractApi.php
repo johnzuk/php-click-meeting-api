@@ -1,18 +1,16 @@
 <?php
+
 namespace ClickMeeting\Api;
 
 use ClickMeeting\Client;
-use ClickMeeting\HttpClient\Message\BodyBuilder;
-use ClickMeeting\HttpClient\Message\PathBuilder;
 use ClickMeeting\HttpClient\Message\QueryBuilder;
 use ClickMeeting\HttpClient\Message\ResponseMediator;
-use Http\Discovery\StreamFactoryDiscovery;
+use Http\Discovery\Psr17FactoryDiscovery;
+use Http\Message\MultipartStream\MultipartStreamBuilder;
 use Http\Message\StreamFactory;
+use Psr\Http\Message\ResponseInterface;
+use SplFileObject;
 
-/**
- * Class AbstractApi
- * @package ClickMeeting\Api
- */
 class AbstractApi implements ApiInterface
 {
     /**
@@ -25,91 +23,73 @@ class AbstractApi implements ApiInterface
      */
     protected $streamFactory;
 
-    /**
-     * @var BodyBuilder
-     */
-    protected $bodyBuilder;
-
-    /**
-     * AbstractApi constructor.
-     * @param Client $client
-     * @param StreamFactory|null $streamFactory
-     * @param BodyBuilder|null $bodyBuilder
-     */
-    public function __construct(Client $client, StreamFactory $streamFactory = null, BodyBuilder $bodyBuilder = null)
+    public function __construct(Client $client, StreamFactory $streamFactory = null)
     {
         $this->client = $client;
-        $this->streamFactory = $streamFactory ?: StreamFactoryDiscovery::find();
-        $this->bodyBuilder = $bodyBuilder ?: new BodyBuilder($this->streamFactory);
+        $this->streamFactory = $streamFactory ?: Psr17FactoryDiscovery::findStreamFactory();
     }
 
-    /**
-     * @param $path
-     * @param array $parameters
-     * @param array $requestHeaders
-     * @return array
-     * @throws \ClickMeeting\Exception\InvalidResponseContentType
-     * @throws \Http\Client\Exception
-     */
-    protected function get($path, array $parameters = [], array $requestHeaders = [])
+    protected function getAsResponse(string $path): ResponseInterface
     {
-        $response = $this->client->getHttpClient()->get(PathBuilder::build($path, $parameters), $requestHeaders);
+        return $this->client->getHttpClient()->get($path);
+    }
+
+    protected function get(string $path): array
+    {
+        $response = $this->getAsResponse($path);
 
         return ResponseMediator::getContent($response);
     }
 
-    /**
-     * @param $path
-     * @param array $parameters
-     * @param array $requestHeaders
-     * @param array $files
-     * @return array
-     * @throws \ClickMeeting\Exception\InvalidResponseContentType
-     * @throws \Http\Client\Exception
-     */
-    protected function post($path, array $parameters = [], array $requestHeaders = [], array $files = [])
+    protected function upload(string $path, SplFileObject $file, string $fileName): array
     {
-        $postRequest = $this->bodyBuilder->build($parameters, $requestHeaders, $files);
+        $builder = new MultipartStreamBuilder($this->streamFactory);
+        $builder->addResource($fileName, $file->fread($file->getSize()), [
+            'filename' => $file->getBasename(),
+        ]);
+
+        $requestHeaders['Content-Type'] = 'multipart/form-data; boundary=' . $builder->getBoundary();
 
         $response = $this->client->getHttpClient()->post(
             $path,
-            $postRequest->getRequestHeaders(),
-            $postRequest->getBody()
+            $requestHeaders,
+            $builder->build()
         );
 
         return ResponseMediator::getContent($response);
     }
 
-
-    /**
-     * @param $path
-     * @param array $parameters
-     * @param array $requestHeaders
-     * @return array
-     * @throws \ClickMeeting\Exception\InvalidResponseContentType
-     * @throws \Http\Client\Exception
-     */
-    protected function put($path, array $parameters = [], array $requestHeaders = [])
+    protected function post(string $path, array $parameters = [], array $requestHeaders = []): array
     {
         $body = $this->streamFactory->createStream(QueryBuilder::build($parameters));
         $requestHeaders['Content-Type'] = 'application/x-www-form-urlencoded';
 
-        $response = $this->client->getHttpClient()->put($path, $requestHeaders, $body);
+        $response = $this->client->getHttpClient()->post(
+            $path,
+            $requestHeaders,
+            $body
+        );
 
         return ResponseMediator::getContent($response);
     }
 
-    /**
-     * @param $path
-     * @param array $parameters
-     * @param array $requestHeaders
-     * @return array
-     * @throws \ClickMeeting\Exception\InvalidResponseContentType
-     * @throws \Http\Client\Exception
-     */
-    protected function deleteRequest($path, array $parameters = [], array $requestHeaders = [])
+    protected function put(string $path, array $parameters = [], array $requestHeaders = []): array
     {
-        $response = $this->client->getHttpClient()->delete(PathBuilder::build($path, $parameters), $requestHeaders);
+        $body = $this->streamFactory->createStream(QueryBuilder::build($parameters));
+        $requestHeaders['Content-Type'] = 'application/x-www-form-urlencoded';
+
+        $response = $this->client->getHttpClient()->put(
+            $path,
+            $requestHeaders,
+            $body
+        );
+
+        return ResponseMediator::getContent($response);
+    }
+
+    protected function deleteRequest(string $path): array
+    {
+        $response = $this->client->getHttpClient()->delete($path);
 
         return ResponseMediator::getContent($response);
     }

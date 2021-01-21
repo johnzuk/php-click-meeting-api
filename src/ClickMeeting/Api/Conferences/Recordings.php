@@ -1,45 +1,23 @@
 <?php
+
 namespace ClickMeeting\Api\Conferences;
 
 use ClickMeeting\Api\AbstractApi;
 
-/**
- * Class Recordings
- * @package ClickMeeting\Api\Conferences
- */
 class Recordings extends AbstractApi
 {
-    /**
-     * @param int $roomId
-     * @return array
-     * @throws \ClickMeeting\Exception\InvalidResponseContentType
-     * @throws \Http\Client\Exception
-     */
-    public function all($roomId)
+    public function all(int $roomId): array
     {
-        return $this->get('conferences/'.$roomId.'/recordings');
+        return $this->get('/conferences/' . $roomId . '/recordings');
     }
 
-    /**
-     * @param int $roomId
-     * @return array
-     * @throws \ClickMeeting\Exception\InvalidResponseContentType
-     * @throws \Http\Client\Exception
-     */
-    public function deleteAll($roomId)
+    public function deleteAll(int $roomId): array
     {
-        return $this->deleteRequest('conferences/'.$roomId.'/recordings');
+        return $this->deleteRequest('/conferences/' . $roomId . '/recordings');
     }
 
-    /**
-     * @param int $roomId
-     * @param int $recordingId
-     * @return array
-     * @throws \ClickMeeting\Exception\InvalidResponseContentType
-     * @throws \Http\Client\Exception
-     */
-    public function delete($roomId, $recordingId)
+    public function delete(int $roomId, int $recordingId): array
     {
-        return $this->deleteRequest('conferences/'.$roomId.'/recordings/'.$recordingId);
+        return $this->deleteRequest('/conferences/' . $roomId . '/recordings/' . $recordingId);
     }
 }

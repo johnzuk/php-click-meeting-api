@@ -29,11 +29,20 @@ require_once __DIR__ . '/vendor/autoload.php';
 $client = new \ClickMeeting\Client();
 $client->authenticate('YourAPIKeyHere');
 
-$client->registrations()->all(123123);
+$client->conferences()->add([
+    'name' => 'test',
+    'room_type' => 'webinar',
+    'permanent_room' => 0,
+    'access_type' => 3,
+    'registration' => [
+        'enabled' => true,
+    ],
+]);
+
+$client->conferences()->edit(321321, [
+    'name' => 'test-edit',
+]);
+
 $client->conferences()->delete(321321);
 
-//add file
-$client->files()->add(123123, [
-    'uploaded' => 'pdf-sample.pdf'
-]);
 ```

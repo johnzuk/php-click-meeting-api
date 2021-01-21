@@ -1,19 +1,11 @@
 <?php
+
 namespace ClickMeeting\Api;
 
-/**
- * Class PhoneGateways
- * @package ClickMeeting\Api
- */
 class PhoneGateways extends AbstractApi
 {
-    /**
-     * @return string
-     * @throws \ClickMeeting\Exception\InvalidResponseContentType
-     * @throws \Http\Client\Exception
-     */
-    public function all()
+    public function all(): array
     {
-        return $this->get('phone_gateways');
+        return $this->get('/phone_gateways');
     }
 }
