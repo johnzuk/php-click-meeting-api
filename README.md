@@ -4,7 +4,7 @@ A PHP [ClickMeeting API](https://dev.clickmeeting.com/api-doc/) wrapper
 Requirements
 ------------
 
-* PHP >= 5.6
+* PHP >= 7.1
 * [Guzzle](https://github.com/guzzle/guzzle) library,
 * (optional) PHPUnit to run tests.
 
@@ -13,7 +13,7 @@ Installation
 Via [composer](https://getcomposer.org)
 
 ```bash
-composer require john_zuk/php-click-meeting-api php-http/guzzle6-adapter
+composer require john_zuk/php-click-meeting-api guzzlehttp/guzzle:^7.2 http-interop/http-factory-guzzle:^1.0
 ```
 
 
